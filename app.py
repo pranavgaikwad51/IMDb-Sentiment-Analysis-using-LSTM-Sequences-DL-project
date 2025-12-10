@@ -12,16 +12,25 @@ import json
 def load_sentiment_model():
     return load_model("model.h5")
 
+
 @st.cache_resource
 def load_tokenizer():
+    # Load tokenizer.json (dict)
     with open("tokenizer.json", "r") as f:
-        tok_json = json.load(f)
-    return tokenizer_from_json(tok_json)
+        tok_dict = json.load(f)
+
+    # Convert dict → JSON string → tokenizer object
+    tok_json = json.dumps(tok_dict)
+    tokenizer = tokenizer_from_json(tok_json)
+
+    return tokenizer
+
 
 model = load_sentiment_model()
 tokenizer = load_tokenizer()
 
-MAX_LEN = 200  # same padding length you trained with
+MAX_LEN = 200  # same padding as training
+
 
 # -----------------------------
 # Prediction Function
@@ -36,19 +45,19 @@ def predict_sentiment(text):
 
     return sentiment, round(confidence, 3)
 
+
 # -----------------------------
 # Streamlit UI
 # -----------------------------
 st.title("🧠 Simple Sentence Sentiment Analyzer")
-st.write("Type any sentence below and the model will predict whether it is **Positive** or **Negative**.")
+st.write("Enter any sentence and the model will predict whether it's **Positive** or **Negative**.")
 
-# User Input
-user_input = st.text_area("Enter your text here:")
+user_input = st.text_area("Type your text here:")
 
 if st.button("Analyze Sentiment"):
     if user_input.strip() == "":
-        st.warning("Please enter some text.")
+        st.warning("⚠️ Please enter text before analyzing.")
     else:
         sentiment, confidence = predict_sentiment(user_input)
-        st.success(f"**Sentiment:** {sentiment}")
-        st.info(f"**Confidence:** {confidence}")
+        st.success(f"### Sentiment: {sentiment}")
+        st.info(f"### Confidence Score: {confidence}")
